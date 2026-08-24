@@ -43,6 +43,10 @@ $Project "Client (CStrike)"
 		$File	"$SRCDIR\game\client\hud_vote.cpp"
 		$File	"$SRCDIR\game\shared\predicted_viewmodel.cpp"
 		$File	"$SRCDIR\game\shared\predicted_viewmodel.h"
+		$File    "cstrike\cs_skin_database.cpp"
+		$File    "cstrike\cs_skin_database.h"
+		$File    "cstrike\SkinProcessor.cpp"
+		$File    "cstrike\SkinProcessor.h"
 		
 		$Folder	"CounterStrike DLL"
 		{

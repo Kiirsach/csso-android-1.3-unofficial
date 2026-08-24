@@ -501,34 +501,15 @@ void CHudTeamCounterHorizontal::Reset()
 
 bool CHudTeamCounterHorizontal::ShouldDraw()
 {
-        if ( cl_teamcounter.GetInt() != 0 )
-                return false;
+    // 当 cl_teamcounter 不为 1 时隐藏
+    if ( cl_teamcounter.GetInt() != 1 )
+        return false;
 
-        // Use this single-row layout when there are 10 or fewer players
-        int iPlayerCount = 0;
-        if ( g_PR )
-        {
-                for ( int i = 1; i <= MAX_PLAYERS; i++ )
-                {
-                        if ( g_PR->IsConnected( i ) && ( g_PR->GetTeam( i ) == TEAM_CT || g_PR->GetTeam( i ) == TEAM_TERRORIST ) )
-                        {
-                                iPlayerCount++;
-                        }
-                }
-        }
+    C_CSPlayer *pPlayer = C_CSPlayer::GetLocalCSPlayer();
+    if ( !pPlayer || pPlayer->IsObserver() )
+        return false;
 
-        if ( iPlayerCount > 10 )
-        {
-                return false;
-        }
-
-        C_CSPlayer *pPlayer = C_CSPlayer::GetLocalCSPlayer();
-        if ( !pPlayer )
-                return false;
-
-        if ( pPlayer->IsObserver() )
-                return false;
-        return true;
+    return true;
 }
 
 void CHudTeamCounterHorizontal::UpdateAvatarMode()

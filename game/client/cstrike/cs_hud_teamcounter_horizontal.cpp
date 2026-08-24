@@ -519,7 +519,6 @@ bool CHudTeamCounterHorizontal::ShouldDraw()
 
         if ( iPlayerCount > 10 )
         {
-                cl_teamcounter.SetValue( 0 );
                 return false;
         }
 

@@ -327,10 +327,18 @@ void CHudTeamCounter::Layout()
     SetPos(panelX, panelY);
     SetSize(panelW, panelH);
 
+    // --- CT 槽位布局 ---
     int ctOriginX = 0;
     for (int i = 0; i < TC_MAX_AVATAR_SLOTS; i++)
     {
         int row = i % 2, col = i / 2; col = (TC_AVATARS_PER_ROW - 1) - col;
+
+        // 当 hud_playercount_pos = 1 (m_bIsAtTheBottom 为 true) 时，反转 0 行与 1 行
+        if ( m_bIsAtTheBottom )
+        {
+            row = 1 - row;
+        }
+
         int sx = ctOriginX + col * (tileW + avatarGap);
         int sy = row * (tileH + avatarGap);
         m_CTSlotRects[i] = { sx, sy, tileW, tileH };
@@ -344,18 +352,27 @@ void CHudTeamCounter::Layout()
         m_CTSlots[i].pSkull->SetBounds(ctSkullX, ctSkullY, m_iSkullSize, m_iSkullSize);
 
         // HEATHBAR: inside avatar, bottom, with margin
-m_CTSlots[i].pHPBar->SetBounds(
-    ax,
-    ay + m_iAvatarSize - ScalePx(TC_BASE_HP_BAR_HEIGHT),
-    m_iAvatarSize,
-    ScalePx(TC_BASE_HP_BAR_HEIGHT)
-);
+        m_CTSlots[i].pHPBar->SetBounds(
+            ax,
+            ay + m_iAvatarSize - ScalePx(TC_BASE_HP_BAR_HEIGHT),
+            m_iAvatarSize,
+            ScalePx(TC_BASE_HP_BAR_HEIGHT)
+        );
     }
+
+    // --- T 槽位布局 ---
     int centerOriginX = teamBlockW + centerGap;
     int tOriginX = centerOriginX + centerW + centerGap;
     for (int i = 0; i < TC_MAX_AVATAR_SLOTS; i++)
     {
         int row = i % 2, col = i / 2;
+
+        // 当 hud_playercount_pos = 1 (m_bIsAtTheBottom 为 true) 时，反转 0 行与 1 行
+        if ( m_bIsAtTheBottom )
+        {
+            row = 1 - row;
+        }
+
         int sx = tOriginX + col * (tileW + avatarGap), sy = row * (tileH + avatarGap);
         m_TSlotRects[i] = { sx, sy, tileW, tileH };
         int ax = sx + m_iOutlineThick, ay = sy + m_iOutlineThick;
@@ -368,14 +385,15 @@ m_CTSlots[i].pHPBar->SetBounds(
         m_TSlots[i].pSkull->SetBounds(tSkullX, tSkullY, m_iSkullSize, m_iSkullSize);
 
         // HEATHBAR: inside avatar, bottom
-m_TSlots[i].pHPBar->SetBounds(
-    ax,
-    ay + m_iAvatarSize - ScalePx(TC_BASE_HP_BAR_HEIGHT),
-    m_iAvatarSize,
-    ScalePx(TC_BASE_HP_BAR_HEIGHT)
-);
+        m_TSlots[i].pHPBar->SetBounds(
+            ax,
+            ay + m_iAvatarSize - ScalePx(TC_BASE_HP_BAR_HEIGHT),
+            m_iAvatarSize,
+            ScalePx(TC_BASE_HP_BAR_HEIGHT)
+        );
     }
 }
+
 
 void CHudTeamCounter::PerformLayout()
 {

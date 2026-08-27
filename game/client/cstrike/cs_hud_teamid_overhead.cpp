@@ -44,13 +44,13 @@ struct HeadIcon_t
 	}
 };
 
-class CHudHeadName : public CHudElement, public EditablePanel
+class CHudTeamId : public CHudElement, public EditablePanel
 {
-	DECLARE_CLASS_SIMPLE( CHudHeadName, EditablePanel );
+	DECLARE_CLASS_SIMPLE( CHudTeamId, EditablePanel );
 
 public:
-	CHudHeadName( const char *name );
-	~CHudHeadName();
+	CHudTeamId( const char *name );
+	~CHudTeamId();
 
 	virtual bool ShouldDraw();
 	virtual void Paint();
@@ -66,15 +66,15 @@ private:
 	HeadIcon_t m_Icons[MAX_PLAYERS][MAX_HEADNAME_ICONS];
 };
 
-DECLARE_HUDELEMENT( CHudHeadName );
+DECLARE_HUDELEMENT( CHudTeamId );
 
-CHudHeadName::CHudHeadName( const char *name )
+CHudTeamId::CHudTeamId( const char *name )
 	: CHudElement( name ), EditablePanel( NULL, "HudHeadName" )
 {
 	SetParent( g_pClientMode->GetViewport() );
 }
 
-CHudHeadName::~CHudHeadName()
+CHudTeamId::~CHudTeamId()
 {
 	for ( int s = 0; s < MAX_PLAYERS; s++ )
 		for ( int i = 0; i < MAX_HEADNAME_ICONS; i++ )
@@ -82,9 +82,9 @@ CHudHeadName::~CHudHeadName()
 				vgui::surface()->DestroyTextureID( m_Icons[s][i].texId );
 }
 
-ConVar cl_headname( "cl_headname", "1", FCVAR_ARCHIVE );
+ConVar cl_headname( "cl_teamid_overhead*", "1", FCVAR_ARCHIVE );
 
-bool CHudHeadName::ShouldDraw()
+bool CHudTeamId::ShouldDraw()
 {
 	ConVarRef mp_teammates_are_enemies( "mp_teammates_are_enemies" );
 	return !mp_teammates_are_enemies.GetBool() && cl_headname.GetBool();
@@ -109,7 +109,7 @@ static bool WorldToScreen( const Vector &world, Vector2D &screen )
 	return true;
 }
 
-void CHudHeadName::LoadIcon( HeadIcon_t &icon, const char *path )
+void CHudTeamId::LoadIcon( HeadIcon_t &icon, const char *path )
 {
 	if ( icon.texId != -1 )
 	{
@@ -152,7 +152,7 @@ void CHudHeadName::LoadIcon( HeadIcon_t &icon, const char *path )
 	Q_strncpy( icon.path, path, sizeof( icon.path ) );
 }
 
-int CHudHeadName::BuildIconList( C_CSPlayer *pPlayer, char out[MAX_HEADNAME_ICONS][128] )
+int CHudTeamId::BuildIconList( C_CSPlayer *pPlayer, char out[MAX_HEADNAME_ICONS][128] )
 {
 	int n = 0;
 
@@ -195,7 +195,7 @@ int CHudHeadName::BuildIconList( C_CSPlayer *pPlayer, char out[MAX_HEADNAME_ICON
 	return n;
 }
 
-void CHudHeadName::DrawIcons( int slot, C_CSPlayer *pPlayer, int cx, int bottomY, int alpha )
+void CHudTeamId::DrawIcons( int slot, C_CSPlayer *pPlayer, int cx, int bottomY, int alpha )
 {
 	char paths[MAX_HEADNAME_ICONS][128];
 	int n = BuildIconList( pPlayer, paths );
@@ -274,29 +274,51 @@ void CHudHeadName::DrawPlayerNames()
 		// 判断当前是否处于冻结时间
 		bool bIsFreezePeriod = CSGameRules() && CSGameRules()->IsFreezePeriod();
 
-		char raw[128];
+		// 拆分名字与数值文本
+		char nameBuf[128];
+		char valBuf[64];
+
+		Q_snprintf( nameBuf, sizeof(nameBuf), "%s", player->GetPlayerName() );
+
 		if ( bIsFreezePeriod )
 		{
-			// 冻结时间：显示玩家名字和金钱
-			Q_snprintf( raw, sizeof(raw), "%s $%d", player->GetPlayerName(), csPlayer->GetAccount() );
+			// 冻结时间：显示金钱
+			Q_snprintf( valBuf, sizeof(valBuf), " $%d", csPlayer->GetAccount() );
 		}
 		else
 		{
-			// 正常阶段：显示玩家名字和血量
-			Q_snprintf( raw, sizeof(raw), "%s %d%%", player->GetPlayerName(), player->GetHealth() );
+			// 正常阶段：显示血量
+			Q_snprintf( valBuf, sizeof(valBuf), " %d%%", player->GetHealth() );
 		}
 
-		wchar_t wide[64];
-		g_pVGuiLocalize->ConvertANSIToUnicode( raw, wide, sizeof(wide) );
+		wchar_t wideName[64];
+		wchar_t wideVal[32];
+		g_pVGuiLocalize->ConvertANSIToUnicode( nameBuf, wideName, sizeof(wideName) );
+		g_pVGuiLocalize->ConvertANSIToUnicode( valBuf, wideVal, sizeof(wideVal) );
 
-		int textW, textH;
-		vgui::surface()->GetTextSize( m_hFont, wide, textW, textH );
+		int nameW, nameH, valW, valH;
+		vgui::surface()->GetTextSize( m_hFont, wideName, nameW, nameH );
+		vgui::surface()->GetTextSize( m_hFont, wideVal, valW, valH );
 
-		// 颜色判断逻辑
+		int totalW = nameW + valW;
+		int startX = cx - totalW / 2;
+
+		// 1. 绘制名字（始终保持阵营颜色）
+		if ( player->GetTeamNumber() == TEAM_CT )
+		{
+			vgui::surface()->DrawSetTextColor( 150, 200, 255, alpha );
+		}
+		else
+		{
+			vgui::surface()->DrawSetTextColor( 234, 209, 138, alpha );
+		}
+		vgui::surface()->DrawSetTextPos( startX, textY );
+		vgui::surface()->DrawPrintText( wideName, wcslen(wideName) );
+
+		// 2. 绘制数值（仅冻结时间下显示亮绿色，其余时刻跟随阵营颜色）
 		if ( bIsFreezePeriod )
 		{
-			// 冻结时间强制设置为亮绿色
-			vgui::surface()->DrawSetTextColor( 50, 255, 50, alpha );
+			vgui::surface()->DrawSetTextColor( 50, 255, 50, alpha ); // 亮绿色
 		}
 		else if ( player->GetTeamNumber() == TEAM_CT )
 		{
@@ -306,19 +328,19 @@ void CHudHeadName::DrawPlayerNames()
 		{
 			vgui::surface()->DrawSetTextColor( 234, 209, 138, alpha );
 		}
+		vgui::surface()->DrawSetTextPos( startX + nameW, textY );
+		vgui::surface()->DrawPrintText( wideVal, wcslen(wideVal) );
 
-		vgui::surface()->DrawSetTextPos( cx - textW / 2, textY );
-		vgui::surface()->DrawPrintText( wide, wcslen(wide) );
-
+		// 3. 绘制上方图标与下方箭头
 		DrawIcons( i - 1, csPlayer, cx, textY - ROW_GAP, alpha );
 
 		vgui::surface()->DrawSetTextColor( 255, 255, 255, alpha );
-		vgui::surface()->DrawSetTextPos( cx - arrowW / 2, textY + textH + ROW_GAP );
+		vgui::surface()->DrawSetTextPos( cx - arrowW / 2, textY + nameH + ROW_GAP );
 		vgui::surface()->DrawPrintText( arrow, wcslen(arrow) );
 	}
 }
 
-void CHudHeadName::Paint()
+void CHudTeamId::Paint()
 {
 	BaseClass::Paint();
 	DrawPlayerNames();

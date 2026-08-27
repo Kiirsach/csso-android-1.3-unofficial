@@ -51,15 +51,15 @@ extern ConVar cl_teamcounter;
 #define TC_BASE_HP_BAR_HEIGHT  3    // slightly larger for internal look (px at 1080p)
 #define TC_BASE_HP_BAR_MARGIN -1    // distance to avatar bottom inside
 
-static const Color TC_CT_OUTLINE_COLOR  ( 181, 212, 238, 96 );  // CT blue
-static const Color TC_T_OUTLINE_COLOR   ( 234, 209, 138, 96 );  // T yellow
+static const Color TC_CT_OUTLINE_COLOR  ( 150, 200, 255, 255 );  // CT blue
+static const Color TC_T_OUTLINE_COLOR   ( 226, 212, 157, 220 );  // T yellow
 static const Color TC_DEAD_BG_COLOR(80, 80, 80, 255);
 static const Color TC_HP_BG_COLOR(0, 0, 0, 0);
 static const Color TC_HP_DELAYED_COLOR  (255,255,255,180);     // Delayed (white) overlay
 static const Color TC_HP_LOW_COLOR      (255, 60, 60, 255); // LOW HP RED
 static const Color TC_OWN_OUTLINE_COLOR  ( 255, 255, 255, 255 );
-static const Color TC_HP_T_COLOR ( 234, 209, 138, 96 );
-static const Color TC_HP_CT_COLOR ( 181, 212, 238, 96 );
+static const Color TC_HP_T_COLOR ( 226, 212, 157, 220 );
+static const Color TC_HP_CT_COLOR ( 150, 200, 255, 255 );
 //-----------------------------------------------------------------------------
 // Animated health bar (inside avatar)
 //-----------------------------------------------------------------------------
@@ -713,11 +713,16 @@ void CHudTeamCounterHorizontal::OnThink()
         }
 
         // Timer text - empty when bomb planted, time out active, or warmup
-        if ( bBombPlanted || pRules->IsTimeOutActive() || pRules->IsWarmupPeriod() )
-        {
-                // Show empty space (like original script)
-                m_pRoundTimerLabel->SetText( L" " );
-        }
+    if ( bBombPlanted || pRules->IsTimeOutActive() || pRules->IsWarmupPeriod() )
+    {
+            // Show empty space (like original script)
+            m_pRoundTimerLabel->SetText( L" " );
+    }
+    else if ( pRules->IsFreezePeriod() && pRules->IsMatchWaitingForResume() )
+    {
+            m_pRoundTimerLabel->SetText( L"❚❚" );
+            g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerLow" );
+    }
         else
         {
                 // Normal timer logic

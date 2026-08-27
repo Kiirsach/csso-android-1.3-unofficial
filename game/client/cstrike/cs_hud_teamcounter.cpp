@@ -55,15 +55,15 @@ ConVar cl_teamcounter( "cl_teamcounter", "0", FCVAR_ARCHIVE,
 #define TC_BASE_HP_BAR_HEIGHT  3  // slightly larger for internal look (px at 1080p)
 #define TC_BASE_HP_BAR_MARGIN -1    // distance to avatar bottom inside
 
-static const Color TC_CT_OUTLINE_COLOR  ( 181, 212, 238, 96 );  // CT blue
-static const Color TC_T_OUTLINE_COLOR   ( 234, 209, 138, 96 );  // T yellow
+static const Color TC_CT_OUTLINE_COLOR  ( 150, 200, 255, 255 );  // CT blue
+static const Color TC_T_OUTLINE_COLOR   ( 226, 212, 157, 220 );  // T yellow
 static const Color TC_DEAD_BG_COLOR(80, 80, 80, 255);
 static const Color TC_HP_BG_COLOR(0, 0, 0, 0);
 static const Color TC_HP_DELAYED_COLOR  (255,255,255,180);     // Delayed (white) overlay
 static const Color TC_HP_LOW_COLOR      (255, 60, 60, 255); // LOW HP RED
 static const Color TC_OWN_OUTLINE_COLOR  ( 255, 255, 255, 255 );
-static const Color TC_HP_T_COLOR ( 234, 209, 138, 96 );
-static const Color TC_HP_CT_COLOR ( 181, 212, 238, 96 );
+static const Color TC_HP_T_COLOR ( 226, 212, 157, 220 );
+static const Color TC_HP_CT_COLOR ( 150, 200, 255, 255 );
 
 //-----------------------------------------------------------------------------
 // Animated health bar (inside avatar)
@@ -407,7 +407,7 @@ void CHudTeamCounter::PaintBackground()
     vgui::ISurface *pSurface = vgui::surface();
     if (!pSurface) return;
 
-    // [修复1] 获取当前本地玩家的索引，用于判断是否为玩家自己的槽位
+    // 获取当前本地玩家的索引，用于判断是否为玩家自己的槽位
     int iLocalIndex = engine->GetLocalPlayer();
 
     // --- CT slot outlines ---
@@ -421,14 +421,14 @@ void CHudTeamCounter::PaintBackground()
 
             // Outer border (own color or team color)
             if ( m_CTSlots[i].iLastPlayerIndex == iLocalIndex )
-                    pSurface->DrawSetColor( TC_OWN_OUTLINE_COLOR ); // [修复2] 将 SetColors 改为 DrawSetColor
+                    pSurface->DrawSetColor( TC_OWN_OUTLINE_COLOR );
             else
-                    pSurface->DrawSetColor( TC_CT_OUTLINE_COLOR );  // [修复2]
+                    pSurface->DrawSetColor( TC_CT_OUTLINE_COLOR );
 
             pSurface->DrawFilledRect( r.x, r.y, r.x + r.w, r.y + r.h );
 
             // Inner fill (dark background)
-            pSurface->DrawSetColor( TC_DEAD_BG_COLOR );             // [修复2]
+            pSurface->DrawSetColor( TC_DEAD_BG_COLOR );
             pSurface->DrawFilledRect(
                     r.x + m_iOutlineThick,
                     r.y + m_iOutlineThick,
@@ -447,13 +447,13 @@ void CHudTeamCounter::PaintBackground()
 
             // Outer border (own color or team color)
             if ( m_TSlots[i].iLastPlayerIndex == iLocalIndex )
-                    pSurface->DrawSetColor( TC_OWN_OUTLINE_COLOR ); // [修复2]
+                    pSurface->DrawSetColor( TC_OWN_OUTLINE_COLOR );
             else
-                    pSurface->DrawSetColor( TC_T_OUTLINE_COLOR );   // [修复2]
+                    pSurface->DrawSetColor( TC_T_OUTLINE_COLOR );
 
             pSurface->DrawFilledRect( r.x, r.y, r.x + r.w, r.y + r.h );
 
-            pSurface->DrawSetColor( TC_DEAD_BG_COLOR );             // [修复2]
+            pSurface->DrawSetColor( TC_DEAD_BG_COLOR );
             pSurface->DrawFilledRect(
                     r.x + m_iOutlineThick,
                     r.y + m_iOutlineThick,
@@ -585,13 +585,11 @@ void CHudTeamCounter::OnThink()
             
             Color hpColor = TC_CT_OUTLINE_COLOR;
 
-            // [新增] 如果是自己的血条，使用专属高亮颜色（白色）
             if ( playerIndex == iLocalIndex )
             {
                 hpColor = TC_OWN_OUTLINE_COLOR;
             }
 
-            // 低血量红色警告（优先级最高，放在下面覆盖之前的颜色）
             if (hp <= 20)
             {
                 hpColor = TC_HP_LOW_COLOR;
@@ -620,13 +618,11 @@ void CHudTeamCounter::OnThink()
             
             Color hpColor = TC_T_OUTLINE_COLOR;
 
-            // [新增] 如果是自己的血条，使用专属高亮颜色（白色）
             if ( playerIndex == iLocalIndex )
             {
                 hpColor = TC_OWN_OUTLINE_COLOR;
             }
 
-            // 低血量红色警告
             if (hp <= 20)
             {
                 hpColor = TC_HP_LOW_COLOR;
@@ -642,74 +638,80 @@ void CHudTeamCounter::OnThink()
             m_TSlots[slot].pHPBar->SetVisible(false);
         }
     }
-            C_CSGameRules *pRules = CSGameRules();
-        if ( !pRules )
-                return;
 
-        // Check if bomb is planted
-        bool bBombPlanted = ( g_PlantedC4s.Count() > 0 );
+    C_CSGameRules *pRules = CSGameRules();
+    if ( !pRules )
+            return;
 
-        if ( bBombPlanted )
-        {
-                C_PlantedC4 *pC4 = g_PlantedC4s[0];
+    // Check if bomb is planted
+    bool bBombPlanted = ( g_PlantedC4s.Count() > 0 );
 
-                // Check if defused
-                if ( pC4->m_bBombDefused )
-                {
-                        // Bomb defused - show solid green icon
-                        m_pBombIcon->SetAlpha( 255 );
-                        m_pBombIcon->SetFgColor( m_clrC4Defused );
-                        m_pBombIcon->SetVisible( true );
-                }
-                else
-                {
-                        // Bomb still ticking - pulsing effect based on m_flNextGlow
-                        int alpha = 255;
-                        if ( gpGlobals->curtime + 0.1f >= pC4->m_flNextGlow )
-                                alpha = 128;  // Dim when not glowing
+    if ( bBombPlanted )
+    {
+            C_PlantedC4 *pC4 = g_PlantedC4s[0];
 
-                        m_pBombIcon->SetAlpha( alpha );
-                        m_pBombIcon->SetFgColor( m_clrC4Planted );
+            // Check if defused
+            if ( pC4->m_bBombDefused )
+            {
+                    // Bomb defused - show solid green icon
+                    m_pBombIcon->SetAlpha( 255 );
+                    m_pBombIcon->SetFgColor( m_clrC4Defused );
+                    m_pBombIcon->SetVisible( true );
+            }
+            else
+            {
+                    // Bomb still ticking - pulsing effect based on m_flNextGlow
+                    int alpha = 255;
+                    if ( gpGlobals->curtime + 0.1f >= pC4->m_flNextGlow )
+                            alpha = 128;  // Dim when not glowing
 
-                        // Hide bomb icon when explode warning is active
-                        m_pBombIcon->SetVisible( !pC4->m_bExplodeWarning );
-                }
-        }
-        else
-        {
-                m_pBombIcon->SetVisible( false );
-        }
+                    m_pBombIcon->SetAlpha( alpha );
+                    m_pBombIcon->SetFgColor( m_clrC4Planted );
 
-        // Timer text - empty when bomb planted, time out active, or warmup
-        if ( bBombPlanted || pRules->IsTimeOutActive() || pRules->IsWarmupPeriod() )
-        {
-                // Show empty space (like original script)
-                m_pRoundTimerLabel->SetText( L" " );
-        }
-        else
-        {
-                // Normal timer logic
-                if ( m_iRoundTime < (int)ceil( pRules->GetRoundRemainingTime() ) )
-                        g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerReset" );
+                    // Hide bomb icon when explode warning is active
+                    m_pBombIcon->SetVisible( !pC4->m_bExplodeWarning );
+            }
+    }
+    else
+    {
+            m_pBombIcon->SetVisible( false );
+    }
 
-                m_iRoundTime = (int)ceil( pRules->GetRoundRemainingTime() );
+    // Timer text - empty when bomb planted, time out active, or warmup
+    if ( bBombPlanted || pRules->IsTimeOutActive() || pRules->IsWarmupPeriod() )
+    {
+            // Show empty space (like original script)
+            m_pRoundTimerLabel->SetText( L" " );
+    }
+    else if ( pRules->IsFreezePeriod() && pRules->IsMatchWaitingForResume() )
+    {
+            m_pRoundTimerLabel->SetText( L"❚❚" );
+            g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerLow" );
+    }
+    else
+    {
+            // Normal timer logic
+            if ( m_iRoundTime < (int)ceil( pRules->GetRoundRemainingTime() ) )
+                    g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerReset" );
 
-                if ( pRules->IsFreezePeriod() )
-                {
-                        // In freeze period, countdown to round start time
-                        m_iRoundTime = (int)ceil( pRules->GetRoundStartTime() - gpGlobals->curtime );
-                }
+            m_iRoundTime = (int)ceil( pRules->GetRoundRemainingTime() );
 
-                if ( m_iRoundTime < 0 )
-                        m_iRoundTime = 0;
+            if ( pRules->IsFreezePeriod() )
+            {
+                    // In freeze period, countdown to round start time
+                    m_iRoundTime = (int)ceil( pRules->GetRoundStartTime() - gpGlobals->curtime );
+            }
 
-                if ( m_iRoundTime <= 10 )
-                        g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerLow" );
+            if ( m_iRoundTime < 0 )
+                    m_iRoundTime = 0;
 
-                int iMinutes = m_iRoundTime / 60;
-                int iSeconds = m_iRoundTime % 60;
+            if ( m_iRoundTime <= 10 )
+                    g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "RoundTimerLow" );
 
-                V_snwprintf( unicode, ARRAYSIZE(unicode), L"%d : %.2d", iMinutes, iSeconds );
-                m_pRoundTimerLabel->SetText( unicode );
-        }
+            int iMinutes = m_iRoundTime / 60;
+            int iSeconds = m_iRoundTime % 60;
+
+            V_snwprintf( unicode, ARRAYSIZE(unicode), L"%d : %.2d", iMinutes, iSeconds );
+            m_pRoundTimerLabel->SetText( unicode );
+    }
 }

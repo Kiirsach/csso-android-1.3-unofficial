@@ -1,4 +1,4 @@
-//========= Copyright ï¿½ 1996-2009, Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2009, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Healthshot Item, belt item
 //
@@ -8,7 +8,6 @@
 #include "cbase.h"
 #include "item_healthshot.h"
 #include "cs_gamerules.h"
-#include "eventlist.h"
 #include "npcevent.h"
 
 #if defined( CLIENT_DLL )
@@ -156,6 +155,7 @@ void CItem_Healthshot::CompleteUse( CCSPlayer *pPlayer )
 		// Give half health buffer
 		pPlayer->SetHealth( Min( pPlayer->GetHealth() + healthshot_health.GetInt(), pPlayer->GetMaxHealth() ) );
 	}
+
 	// emit event	
 // 	IGameEvent *event = gameeventmanager->CreateEvent( "healthshot_used" );
 // 	if( event )
@@ -168,30 +168,30 @@ void CItem_Healthshot::CompleteUse( CCSPlayer *pPlayer )
 
 	BaseClass::CompleteUse( pPlayer );
 }
+
 void CItem_Healthshot::Operator_HandleAnimEvent( animevent_t* pEvent, CBaseCombatCharacter* pOperator )
 {
- 	int nEvent = pEvent->event;
- 	if ( (pEvent->type & AE_TYPE_NEWEVENTSYSTEM) && (pEvent->type & AE_TYPE_SERVER) )
- 	{
- 		if ( nEvent == AE_WPN_HEALTHSHOT_INJECT )
- 		{
- 			CCSPlayer* pPlayer = ToCSPlayer( GetPlayerOwner() );
- 			if ( !pPlayer || !pPlayer->IsAlive() )
- 				return;
- 			
- 			CompleteUse( pPlayer );
- 
- 			SetUseVisuallyComplete( true );
- 
- 			// remove the ammo
- 			pPlayer->RemoveAmmo( 1, m_iPrimaryAmmoType, true );
- 			return;
- 		}
- 	}
- 
- 	BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
-}
+	int nEvent = pEvent->event;
+	if ( (pEvent->type & AE_TYPE_NEWEVENTSYSTEM) && (pEvent->type & AE_TYPE_SERVER) )
+	{
+		if ( nEvent == AE_WPN_HEALTHSHOT_INJECT )
+		{
+			CCSPlayer* pPlayer = ToCSPlayer( GetPlayerOwner() );
+			if ( !pPlayer || !pPlayer->IsAlive() )
+				return;
+			
+			CompleteUse( pPlayer );
 
+			SetUseVisuallyComplete( true );
+
+			// remove the ammo
+			pPlayer->RemoveAmmo( 1, m_iPrimaryAmmoType, true );
+			return;
+		}
+	}
+
+	BaseClass::Operator_HandleAnimEvent( pEvent, pOperator );
+}
 #endif	//CLIENT_DLL
 
 float CItem_Healthshot::GetUseTimerDuration( void )

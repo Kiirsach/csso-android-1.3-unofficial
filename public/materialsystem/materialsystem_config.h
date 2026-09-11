@@ -20,11 +20,11 @@ enum MaterialSystem_Config_Flags_t
 	MATSYS_VIDCFG_FLAGS_WINDOWED					= ( 1 << 0 ),
 	MATSYS_VIDCFG_FLAGS_RESIZING					= ( 1 << 1 ),
 	MATSYS_VIDCFG_FLAGS_NO_WAIT_FOR_VSYNC			= ( 1 << 3 ),
-	MATSYS_VIDCFG_FLAGS_STENCIL						= ( 1 << 4 ),
-	MATSYS_VIDCFG_FLAGS_FORCE_TRILINEAR				= ( 1 << 5 ),
+	MATSYS_VIDCFG_FLAGS_STENCIL					= ( 1 << 4 ),
+	MATSYS_VIDCFG_FLAGS_FORCE_TRILINEAR			= ( 1 << 5 ),
 	MATSYS_VIDCFG_FLAGS_FORCE_HWSYNC				= ( 1 << 6 ),
 	MATSYS_VIDCFG_FLAGS_DISABLE_SPECULAR			= ( 1 << 7 ),
-	MATSYS_VIDCFG_FLAGS_DISABLE_BUMPMAP				= ( 1 << 8 ),
+	MATSYS_VIDCFG_FLAGS_DISABLE_BUMPMAP			= ( 1 << 8 ),
 	MATSYS_VIDCFG_FLAGS_ENABLE_PARALLAX_MAPPING		= ( 1 << 9 ),
 	MATSYS_VIDCFG_FLAGS_USE_Z_PREFILL				= ( 1 << 10 ),
 	MATSYS_VIDCFG_FLAGS_REDUCE_FILLRATE				= ( 1 << 11 ),
@@ -33,7 +33,7 @@ enum MaterialSystem_Config_Flags_t
 	MATSYS_VIDCFG_FLAGS_SCALE_TO_OUTPUT_RESOLUTION  = ( 1 << 14 ),
 	MATSYS_VIDCFG_FLAGS_USING_MULTIPLE_WINDOWS      = ( 1 << 15 ),
 	MATSYS_VIDCFG_FLAGS_DISABLE_PHONG               = ( 1 << 16 ),
-	MATSYS_VIDCFG_FLAGS_VR_MODE						= ( 1 << 17 ),
+	MATSYS_VIDCFG_FLAGS_VR_MODE					= ( 1 << 17 ),
 };
 
 struct MaterialSystemHardwareIdentifier_t
@@ -48,7 +48,7 @@ struct MaterialSystem_Config_t
 	bool Windowed() const { return ( m_Flags & MATSYS_VIDCFG_FLAGS_WINDOWED ) != 0; }
 	bool Resizing() const { return ( m_Flags & MATSYS_VIDCFG_FLAGS_RESIZING ) != 0; }
 #ifdef CSS_PERF_TEST
-	bool WaitForVSync() const { return false; }//( m_Flags & MATSYS_VIDCFG_FLAGS_NO_WAIT_FOR_VSYNC ) == 0; }
+	bool WaitForVSync() const { return false; } // ( m_Flags & MATSYS_VIDCFG_FLAGS_NO_WAIT_FOR_VSYNC ) == 0;
 #else
 	bool WaitForVSync() const { return ( m_Flags & MATSYS_VIDCFG_FLAGS_NO_WAIT_FOR_VSYNC ) == 0; }
 #endif
